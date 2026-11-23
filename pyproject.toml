@@ -1,7 +1,7 @@
 [project]
-name = "smart-appointment-ai-agent"
+name = "multi-domain-agent-harness"
 version = "0.1.0"
-description = "面向按摩门店场景的智能预约与咨询系统（多 Agent + RAG + FastAPI）"
+description = "A self-built TAO/ReAct agent runtime with guardrails, memory, tracing and an evaluation gate; domains are swappable packages."
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 dependencies = [
