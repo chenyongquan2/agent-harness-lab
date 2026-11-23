@@ -1,0 +1,61 @@
+# 🧭 Harness 学习地图（总索引）
+
+> 这是一个关于 **Agent Harness** 的学习系列总入口。所有相关笔记从这里进，按下面的顺序读最顺。
+>
+> **一句话定调**：模型负责**推理（reasoning）**，harness 负责**能力（capability）**——投资你的 harness，而不是只换你的模型。
+
+---
+
+## 📚 按顺序读（三步走）
+
+| # | 文档 | 它管什么 | 什么时候读 |
+|---|------|---------|-----------|
+| 1️⃣ | [概念入门 · harness-study-notes.md](./harness-study-notes.md) | harness **是什么**、三层 ①②③、家族全景、马挽具比喻、5 杠杆、要不要装 ECC | **第一次接触**这个概念时 |
+| 2️⃣ | [官方手册 · harness-engineering-official-notes.md](./harness-engineering-official-notes.md) | OpenAI / Anthropic 两篇官方文精读 + **两份操作手册**（当好"用 agent 的人 / 造 agent 的人"） | 想知道**高手具体怎么做**时 |
+| 3️⃣ | [重构计划 · harness-refactor-plan.md](./harness-refactor-plan.md) | 把本预约项目从 **workflow 重构成 harness** 的分 Phase 落地方案 | **动手改本项目**时 |
+| 4️⃣ | [读源码 · harness-code-reading.md](./harness-code-reading.md) | 按数据流的 **7 站精读路线**（每站：读哪个文件 / 配哪个测试 / 带什么问题），带可勾选清单 | **重构已落地、想读懂 `harness/` 代码**时 |
+| 5️⃣ | [专题 · agent-eval-fieldguide.md](./agent-eval-fieldguide.md) | **agent / LLM 应用评估**领域教材（面试向）：评估分层、离线/在线、数据集、指标、LLM-judge、RAG 评估、非确定性、回归门禁、业界工具速览，每点锚定本项目代码 + 高频面试问答 | 想系统补**评估**这块知识、或**准备面试**时 |
+
+> 简记：**1 学概念 → 2 学方法 → 3 动手做 → 4 读懂代码 → 5 会评估**。
+
+---
+
+## 🗺️ 30 秒先建立两个心智模型
+
+读任何一篇前，先记住这两张"地图"，后面就不会绕晕：
+
+**① 三层 harness（在哪一层）**
+
+| 层 | 是什么 | 例子 |
+|----|--------|------|
+| ① 运行时 harness | 嵌进**你 app** 的 agent 大脑 | 你重构后的预约系统 |
+| ② 编码工具 | 帮你**写代码**的 agent | Claude Code、Cursor、Codex |
+| ③ 增强层 | 装在 ② 之上的能力包 | ECC |
+
+**② 两篇官方文的分工（A/B）**
+
+- 🅰️ **OpenAI** = 当好"**用 agent 的人**"（开发期，harness 住在代码仓库里）
+- 🅱️ **Anthropic** = 当好"**造 agent 的人**"（运行期，harness 住在 agent 大脑里）
+
+---
+
+## ⚡ 想干嘛就跳哪（快速路由）
+
+- 只想用一句话搞懂 harness → [概念笔记 · 5 分钟速览](./harness-study-notes.md#-怎么读这份笔记)
+- 纠结要不要装 ECC 这类增强包 → [概念笔记 · 第 6–7 章](./harness-study-notes.md)
+- 想要"怎么把代码写好"的清单 → [官方笔记 · 5.1 当好用 agent 的人](./harness-engineering-official-notes.md)
+- 想要"怎么设计 agent 更稳"的清单 → [官方笔记 · 5.2 当好造 agent 的人](./harness-engineering-official-notes.md)
+- 准备改本项目了 → [重构计划](./harness-refactor-plan.md)
+- 重构已落地、想读懂 `harness/` 代码 → [读源码 · 7 站路线](./harness-code-reading.md)
+- 想补 agent 评估知识 / 准备面试 → [专题 · agent 评估领域教材](./agent-eval-fieldguide.md)
+
+---
+
+## 🔗 相关（非 harness 主线）
+
+- [LangChain LCEL 管道写法笔记](./langchain-lcel-notes.md) —— 重构会用到 LangChain，这篇讲 `prompt | llm`（LCEL 的 `|`）的原理，新手向。
+- [Pydantic 学习笔记](./pydantic-notes.md) —— 工具层的地基。讲 `args_schema(**raw_args)` 是什么、Pydantic 元类如何自动校验，以及它为何是「单一真相源」。新手向。
+
+---
+
+> 维护约定：**一个概念一个文件**（这正是 OpenAI 黄金准则之一）。以后新增 harness 相关笔记，只需在本页"按顺序读"表里加一行，别把内容塞进已有文件。

@@ -1,0 +1,75 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+.eggs/
+build/
+dist/
+develop-eggs/
+.installed.cfg
+pip-wheel-metadata/
+*.manifest
+*.spec
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- Environment & secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Data & runtime artifacts ---
+data/
+*.sqlite
+*.sqlite3
+*.db
+*.faiss
+*.index
+*.pkl
+
+# --- Logs ---
+*.log
+logs/
+
+# --- 在线评估闭环 trace（改造 7，运行期产物） ---
+evals/traces/
+
+# --- Tests / coverage ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# Claude Code 运行期锁文件（非项目产物）
+.claude/scheduled_tasks.lock
+
+xiaohongshu/*
+
+# 个人求职材料（不入库）
+简历.md
+面试准备-Agent项目叙事.md
+
+# 另一个域的服务源码工作区（运维预先 clone，不进版本库）
+repos/

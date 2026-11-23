@@ -1,0 +1,59 @@
+[project]
+name = "smart-appointment-ai-agent"
+version = "0.1.0"
+description = "面向按摩门店场景的智能预约与咨询系统（多 Agent + RAG + FastAPI）"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "fastapi>=0.115,<0.116",
+    "uvicorn[standard]>=0.30.0",
+    "jinja2>=3.1.2",
+    "python-multipart>=0.0.9",
+    "pydantic>=2.5.1",
+    "aiofiles>=23.2.1",
+    "python-dotenv>=1.0.0",
+    "langchain>=0.3,<1.0",
+    "langchain-openai>=0.2,<1.0",
+    "langchain-core>=0.3,<1.0",
+    "langchain-community>=0.3,<1.0",
+    "langchain-experimental>=0.3,<1.0",
+    "faiss-cpu>=1.7.0",
+    "numpy>=1.21.0",
+    "schedule>=1.2.0",
+    "sqlalchemy>=1.4.0",
+    "requests>=2.25.0",
+    "mcp>=1.0.0",
+    "opentelemetry-sdk>=1.20,<2.0",
+    "lark-oapi>=1.7.1",
+    # 另一个域的日志查询走它（async HTTP）。此前只是 langchain/TestClient 的传递依赖，
+    # 现在有直接调用方，显式声明避免上游变动时无声失效。
+    "httpx>=0.27",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    # starlette TestClient 依赖 httpx（Web 端到端回归测试用）。此前只是传递依赖，
+    # 显式声明避免上游变动时测试无声失效。
+    "httpx>=0.27",
+    # 把「事件循环被同步阻塞冻住」这类故障从「CI 挂死」变成「明确失败」。
+    "pytest-timeout>=2.4.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+# 让 pytest 把项目根加入 sys.path，使 `import agents/config/...` 可解析
+pythonpath = ["."]
+# pytest-timeout 的默认方法。thread 不依赖事件循环，故即便事件循环被同步阻塞冻住
+# 也能把「挂死」变成「明确失败」——见 tests/test_embedding_timeout.py 的说明。
+timeout_method = "thread"
+# 让 @pytest.mark.asyncio 标记的协程测试被真正收集执行（否则是未知 mark）
+asyncio_mode = "auto"
+# 只从 tests/ 收集。**必须限定**：另一个域会把真实服务仓库 clone 进 repos/，
+# 那里面有它们自己的 test_*.py，pytest 会一路爬进去收集（实测撞到过：
+# 某个被 clone 进来的仓库里的 test_client.py 直接让收集阶段报错）。
+testpaths = ["tests"]
+norecursedirs = ["repos", ".venv", "*.egg", "build", "dist"]
