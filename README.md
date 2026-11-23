@@ -1,9 +1,10 @@
-# multi-domain-agent-harness
+# agent-harness-lab
 
 English | [简体中文](README.zh-CN.md)
 
 A self-built agent runtime (a TAO loop: think, act, observe) with guardrails, layered memory, tracing and a regression gate for evaluation. Everything that belongs to one business is packed into a swappable **domain package**, so the same runtime can serve a different domain without changing a line of the loop. This repository ships one reference domain: appointment booking and consulting for a massage shop.
 
+[![CI](https://github.com/chenyongquan2/agent-harness-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/chenyongquan2/agent-harness-lab/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Python 3.10 to 3.12](https://img.shields.io/badge/python-3.10%20to%203.12-blue.svg)
 

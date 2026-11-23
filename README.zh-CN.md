@@ -1,9 +1,10 @@
-# multi-domain-agent-harness
+# agent-harness-lab
 
 [English](README.md) | 简体中文
 
 这是一个自己从头写的智能体运行时。它的核心是 TAO 循环（Thought、Action、Observation，即思考、调用工具、观察结果，循环往复直到给出最终回答），另外配有保护机制（超时、重试、预算、权限检查）、分层记忆、请求追踪，以及一套回归检查：每次改动后重新运行评测，指标比基线差得太多，就判为不通过。和某个具体业务有关的东西，都放进一个可替换的**领域包**里，所以同一个运行时可以换一个业务域使用，循环本身一行都不用改。本仓库自带一个参考业务域：按摩门店的预约和咨询。
 
+[![CI](https://github.com/chenyongquan2/agent-harness-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/chenyongquan2/agent-harness-lab/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Python 3.10 到 3.12](https://img.shields.io/badge/python-3.10%20to%203.12-blue.svg)
 
