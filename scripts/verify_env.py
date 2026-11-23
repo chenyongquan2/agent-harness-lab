@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Smoke test for the Smart Appointment AI Agent environment.
+Smoke test for the multi-domain-agent-harness environment.
 
 Imports every critical third-party package declared in pyproject.toml and
 checks the .env file for required model provider keys. Exits with a non-zero
 status if anything is missing.
 
 Usage:
-    uv run python .claude/setup-environment/scripts/verify_env.py
+    uv run python scripts/verify_env.py
 """
 from __future__ import annotations
 

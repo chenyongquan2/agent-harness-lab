@@ -12,9 +12,26 @@
 """
 
 import os
+from pathlib import Path
 from typing import Any, List, Optional
 
 import pytest
+
+# 全新克隆下来直接 `uv run pytest` 就能跑：没有 .env 时给出占位的模型配置（测试里的模型
+# 都被换成假模型，这些值不会真的发出请求），并保证 SQLite 文件所在的 data/ 目录存在。
+_PLACEHOLDER_ENV = {
+    "MODEL_PROVIDER": "qwen",
+    "LLM_API_KEY": "test-key",
+    "LLM_BASE_URL": "http://127.0.0.1:9/v1",
+    "LLM_MODEL": "test-chat-model",
+    "EMBEDDING_PROVIDER": "qwen",
+    "EMBEDDING_API_KEY": "test-key",
+    "EMBEDDING_BASE_URL": "http://127.0.0.1:9/v1",
+    "EMBEDDING_MODEL": "test-embedding-model",
+}
+for _name, _value in _PLACEHOLDER_ENV.items():
+    os.environ.setdefault(_name, _value)
+(Path(__file__).resolve().parent.parent / "data").mkdir(exist_ok=True)
 
 
 @pytest.fixture(autouse=True)

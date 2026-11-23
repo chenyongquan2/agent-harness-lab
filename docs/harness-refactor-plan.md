@@ -1,6 +1,6 @@
 # 从 Workflow 到 Harness：Smart Appointment Agent 重构计划
 
-> 📍 本文属于 harness 学习系列（**第 3 步 · 动手重构**）。总览见 [harness-index.md](./harness-index.md)。
+> 📍 本文属于 harness 学习系列（**第 3 步 · 动手重构**）。总览见 harness-index.md。
 >
 > 目标：把当前"LLM 分类 + if/else 硬路由"的工作流，重构为一个真正的 **Agent Harness**（智能体运行时外壳），对齐 2026 年主流实践，参考 **Claude Code** 与 **OpenClaw** 的架构。
 >
@@ -138,7 +138,7 @@ async def run(self, messages, session):
 - 持久化到 DB，重启不丢。
 - **验收**：两个 session 并发互不干扰；重启后能恢复会话。
 - **技能点**：会话隔离、context engineering、记忆压缩。
-- **📌 记忆压缩后续升级**（OpenSpec change `add-context-compaction`，2026-06-21）：Phase 4 的摘要层当时留 `NoOpSummary` 占位桩，已升级为**生产级实现** `LLMSummaryMemory`——固定 token 阈值触发（不锚模型窗口）、结构化滚动压缩（summary-of-summary）、`ConversationSummary` 表持久化缓存（`covered_upto`=末条 turn id）、读/写分离（写侧回合收尾 inline-after-stream 算、读侧请求开始纯读缓存）、LLM 失败降级回纯窗口、tracer 可观测。选型依据见 [harness-study-notes.md §9](./harness-study-notes.md)（Claude Code 高水位全量 vs 滚动缓冲摘要两流派）。后续 change `fix-compaction-gap-blindspot` 又修掉了「夹缝盲区」——把读侧可见性分界从窗口改为 `covered_upto`（未压缩回合一律原文注入），详见学习笔记 §9.5。
+- **📌 记忆压缩后续升级**（OpenSpec change `add-context-compaction`，2026-06-21）：Phase 4 的摘要层当时留 `NoOpSummary` 占位桩，已升级为**生产级实现** `LLMSummaryMemory`——固定 token 阈值触发（不锚模型窗口）、结构化滚动压缩（summary-of-summary）、`ConversationSummary` 表持久化缓存（`covered_upto`=末条 turn id）、读/写分离（写侧回合收尾 inline-after-stream 算、读侧请求开始纯读缓存）、LLM 失败降级回纯窗口、tracer 可观测。选型依据见 harness-study-notes.md §9（Claude Code 高水位全量 vs 滚动缓冲摘要两流派）。后续 change `fix-compaction-gap-blindspot` 又修掉了「夹缝盲区」——把读侧可见性分界从窗口改为 `covered_upto`（未压缩回合一律原文注入），详见学习笔记 §9.5。
 - **简历话术**：重构全局状态为按会话隔离 + 分层记忆，支持并发用户与跨会话偏好。
 
 ### Phase 5 — 护栏 Guardrails（1 天）
@@ -162,7 +162,7 @@ async def run(self, messages, session):
 **目标**：对齐 Claude Code 的 sub-agents 与 OpenClaw 的 Skills System。
 - 把"预约""咨询""行为分析"做成**专用子 Agent**，由主 harness 通过一个 `delegate(sub_agent, task)` 工具派生调用（而非硬编码路由）。
 - 复杂任务可并行派生、各自独立上下文，结果汇总回主 Agent。
-- ~~可选：把可复用能力沉淀为 **Skill**（带描述、按需加载），对齐 Claude Code skills 机制。~~ → **已撤销**：Phase 7 曾搭关键词版 Skill 骨架，但从未接入运行路径，已于 2026-06-21 移除（PR #2，YAGNI）；真要做按开放 `SKILL.md` 标准重做，理由见 [skills-notes.md §8](./skills-notes.md)。
+- ~~可选：把可复用能力沉淀为 **Skill**（带描述、按需加载），对齐 Claude Code skills 机制。~~ → **已撤销**：Phase 7 曾搭关键词版 Skill 骨架，但从未接入运行路径，已于 2026-06-21 移除（PR #2，YAGNI）；真要做按开放 `SKILL.md` 标准重做，理由见 skills-notes.md §8。
 - **验收**：主 Agent 能自主决定"这个任务交给哪个子 Agent"。
 - **技能点**：multi-agent orchestration、sub-agent 派生、skills 设计。
 

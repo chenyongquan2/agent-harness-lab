@@ -133,7 +133,7 @@ connected to wss://msg-frontier.feishu.cn/ws/v2 ...
 
 ```bash
 uv run pytest                                          # 全部测试
-uv run pytest tests/test_task_classification_agent.py  # 单个文件
+uv run pytest tests/test_agent_loop.py                  # 单个文件
 ```
 
 ## 常见问题

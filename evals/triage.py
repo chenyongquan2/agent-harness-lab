@@ -84,13 +84,20 @@ def load_trace_spans(path: Path) -> list[Span]:
     return spans
 
 
+def _fromisoformat(text: str) -> datetime:
+    """``datetime.fromisoformat`` 在 Python 3.10 里不认结尾的 ``Z``，这里先换成 ``+00:00``。"""
+    if text.endswith(("Z", "z")):
+        text = text[:-1] + "+00:00"
+    return datetime.fromisoformat(text)
+
+
 def parse_since(text: str) -> datetime:
     """解析 ``--since`` 的 ISO 时间串；**MUST 自带时区信息**（``Z`` 或显式偏移）。
 
     刻意不接受裸时间串、也不按本机时区补全：参考系统在告警时区上栽过坑，而"猜时区"
     的错会安静地把筛选窗整体挪几小时，比直接报错难查得多。
     """
-    dt = datetime.fromisoformat(text)
+    dt = _fromisoformat(text)
     if dt.tzinfo is None:
         raise ValueError(
             f"--since 必须带时区（如 2026-08-03T00:00:00Z 或 2026-08-03T08:00:00+08:00），"
@@ -119,7 +126,7 @@ def filter_traces_since(spans: Iterable[Span], since: datetime) -> tuple[list[Sp
             continue
         # 取组内最早的墙钟（即 root 的）作为这条 trace 的发生时刻。
         try:
-            earliest = min(datetime.fromisoformat(s) for s in stamps)
+            earliest = min(_fromisoformat(s) for s in stamps)
         except ValueError:
             legacy_groups += 1  # 串坏了同样按"无从判断"处理，纳入并计数
             kept.extend(group)

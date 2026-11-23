@@ -1,6 +1,6 @@
 # 读懂 Harness 源码：按 7 站逐站精读（每站自包含）
 
-> 📍 本文属于 harness 学习系列（**第 4 步 · 读源码**）。总览见 [harness-index.md](./harness-index.md)。
+> 📍 本文属于 harness 学习系列（**第 4 步 · 读源码**）。总览见 harness-index.md。
 >
 > 前三步学的是「harness 是什么 / 高手怎么做 / 本项目怎么规划」；这一步动手**读 `harness/` 的真实代码**。配套：[harness-refactor-plan.md](./harness-refactor-plan.md)（每站对应哪个 Phase）。
 >
@@ -26,7 +26,7 @@
 
 读代码配合**单步调试**最快建立直觉。本项目对调试很友好——`tests/test_agent_loop.py` 用**离线 fake LLM**（`ScriptedChatModel`，按预设脚本返回 `AIMessage`），**不用配 API key、不触网、可重复**，是学循环的首选入口。
 
-仓库已有 [.vscode/launch.json](../.vscode/launch.json)，含三个配置：
+仓库已有 .vscode/launch.json，含三个配置：
 
 | 配置 | 用途 |
 |------|------|
@@ -759,7 +759,7 @@ def get_read_context(self, session_id):
 
 即使 U1（第 1 轮的「只要女技师」）已经滑出 4 条窗口、**原文不再出现**，它的约束已经被第 3 轮压进 S1、又被第 4 轮滚进 S2，于是第 4 轮模型**仍从摘要里看到「女技师」**——不会把男技师推给用户。这就是压缩层的价值：**用一条 SystemMessage 的成本，保住了本会被窗口丢弃的早期关键信息**。对比没有压缩层（`NoOpSummary`）时：第 4 轮的 messages 里既没有 U1 原文、也没有摘要，"女技师"彻底失忆。
 
-所以现状已不是「旧轮直接丢」，而是「旧轮被压缩成摘要、由读侧重新注入」。`NoOpSummary` 仍在的意义：接口可互换、降级有下界（想关压缩，换回它即可）。选型背景见 [harness-study-notes.md §9](./harness-study-notes.md)。
+所以现状已不是「旧轮直接丢」，而是「旧轮被压缩成摘要、由读侧重新注入」。`NoOpSummary` 仍在的意义：接口可互换、降级有下界（想关压缩，换回它即可）。选型背景见 harness-study-notes.md §9。
 
 **③ 长期** — 跨会话读用户偏好，失败不拖垮主流程
 
@@ -1398,7 +1398,7 @@ _main_registry.register(_delegate_tool)   # ☜ 主 Agent 手里「只有」dele
 | 角色 | 用哪个 registry | 里面有哪些工具 | system_prompt 从哪来 |
 |---|---|---|---|
 | **主 Agent** | `_main_registry` | 只有 `delegate` | `build_system_prompt(_main_registry, _subagents)` **动态拼**（第 3 站 3.6） |
-| **consultant** 子 Agent | 运行时 `_full_registry.subset(("search_knowledge",))` | search_knowledge | **写死**在 [`CONSULTANT_SUBAGENT.system_prompt`](../harness/subagents/consultant.py#L22) |
+| **consultant** 子 Agent | 运行时 `_full_registry.subset(("search_knowledge",))` | search_knowledge | **写死**在 [`CONSULTANT_SUBAGENT.system_prompt`](../domains/appointment/subagents/consultant.py#L22) |
 | **appointment** 子 Agent | 运行时 `subset((...))` | find_technician / check_availability / create_appointment / get_user_preferences | 写死在 `APPOINTMENT_SUBAGENT.system_prompt` |
 | **user_behavior** 子 Agent | 运行时 `subset((...))` | get_user_preferences | 写死在 `USER_BEHAVIOR_SUBAGENT.system_prompt` |
 | `_full_registry` 本身 | **谁都不直接用** | 全部 5 个领域工具 | —（它只是「母版目录」，供子 Agent `subset()` 切片） |
@@ -1422,7 +1422,7 @@ _main_registry.register(_delegate_tool)   # ☜ 主 Agent 手里「只有」dele
 
 ## 6.5 harness 的 `Skill`（已移除 · 曾是仿 Agent Skill 的骨架）
 
-> 术语：**Agent Skill** = 开放标准（`SKILL.md`）；**harness 的 `Skill` 类** = 本仓库曾仿这个理念的玩具类。用词约定见 [skills-notes.md §0](./skills-notes.md)。
+> 术语：**Agent Skill** = 开放标准（`SKILL.md`）；**harness 的 `Skill` 类** = 本仓库曾仿这个理念的玩具类。用词约定见 skills-notes.md §0。
 > ⚠️ **已删除（2026-06-21，OpenSpec change `remove-skills-skeleton`，PR #2 已合并 master）**：`harness/skills/` 整目录 + `tests/test_skills.py` + `openspec/specs/skills/` 均已移除（git 历史留底）。本节保留为「为何曾经有、为何删」的存档。
 
 理念是**按需加载可复用能力、不常驻**（渐进式披露，对齐 Agent Skill）。Phase 7 曾留一个关键词版 `Skill` 类（`name`/`description`/`content`/`triggers`）+ `SkillRegistry.load_for(task)`，但**从未接进运行路径**（`chat_handler`/`AgentLoop`/`SubAgent.run`/`delegate` 都不调它），属扩展点骨架。生产化阶段按 YAGNI 删除。
@@ -1430,7 +1430,7 @@ _main_registry.register(_delegate_tool)   # ☜ 主 Agent 手里「只有」dele
 - **什么时候才会用到**：当「运营 SOP/话术」积累到几十套、且想让运营自助维护时（信号：子 Agent 的 `system_prompt` 越写越长、改话术要发版）。在那之前，**工具 + RAG + 子 Agent + 系统提示已覆盖需求，用不上 skill**。
 - **演进方向（生产）**：那个关键词版骨架对未来生产版**几乎零复用**，故已移除；真要做时采用开放 **`SKILL.md` 标准 + 模型驱动加载**（`skills-ref` 或 LangChain Deep Agents），**不复活关键词版**。
 
-> 📎 完整分析（要不要 / 何时 / 选型 / `skills-ref` 成熟度实测 / 术语三分）见 [skills-notes.md](./skills-notes.md)。
+> 📎 完整分析（要不要 / 何时 / 选型 / `skills-ref` 成熟度实测 / 术语三分）见 skills-notes.md。
 
 **带着问题读的答案**：
 - 主 Agent 如何「自主决定」派给谁？→ system prompt 里列了子 Agent 清单（[`build_system_prompt`](../harness/runtime/system_prompt.py#L60) 渲染，第 3 站），模型在 TAO 循环里调 delegate 并指定 subagent，**不是 if/else**。
@@ -1473,7 +1473,7 @@ _main_registry.register(_delegate_tool)   # ☜ 主 Agent 手里「只有」dele
 ## 7.2 读哪些文件
 
 - [ ] [test_chat_handler_e2e.py](../tests/test_chat_handler_e2e.py) — 把前面所有东西串起来的全流程
-- [ ] [evals/run_evals.py](../evals/run_evals.py) + [evals/metrics.py](../evals/metrics.py) + [evals/cases.jsonl](../evals/cases.jsonl)
+- [ ] [evals/run_evals.py](../evals/run_evals.py) + [evals/metrics.py](../evals/metrics.py) + [evals/cases.jsonl](../domains/appointment/evals/cases.jsonl)
 - [ ] [evals/README.md](../evals/README.md)
 
 先把整条链路画出来——**一条消息从进来到返回，流经哪些文件**（这张图画得出，就说明 7 站真的串起来了）：

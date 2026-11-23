@@ -17,7 +17,7 @@ A self-built agent runtime (a TAO loop: think, act, observe) with guardrails, la
 - **Memory that does not lose constraints.** Older turns are compressed into a structured summary (key entities, decisions, unfinished items, user constraints) through structured output, not free text, so "only a female therapist" is not dropped by a vague summary.
 - **Tracing that feeds evaluation.** Each request is one trace with explicit parent and child spans. The sampling exporter decides per whole trace and always keeps traces with error signals, and the triage tool turns those traces into candidate test cases.
 - **An evaluation gate with a held-out set.** Evaluation runs the real loop, repeats each case several times, reports 95 percent confidence intervals, and exits with code 3 when a gated metric regresses past the tolerance the domain declares. A held-out split never enters the gate.
-- **Tested.** 538 unit and end-to-end tests pass offline (fake models, a local SQLite file, placeholder keys). Run them with the commands under [Quick start](#quick-start).
+- **Tested.** 539 unit and end-to-end tests pass offline on Python 3.10, 3.11 and 3.12 (fake models, a local SQLite file, placeholder keys), and a GitHub Actions workflow runs them on every push. Run them with the commands under [Quick start](#quick-start).
 
 ## Architecture
 
@@ -77,12 +77,11 @@ Needs [uv](https://docs.astral.sh/uv/) and Python 3.10 to 3.12.
 
 ```bash
 uv sync
-cp .env.example .env     # Windows PowerShell: Copy-Item .env.example .env
-mkdir data               # the SQLite file lives here
-uv run pytest            # offline: fake models, no API key needed
+uv run pytest                      # offline: fake models, no API key and no .env needed
+uv run python scripts/demo_offline.py   # a scripted model drives the real loop: success, tool error, spin stop
 ```
 
-To run the service you need an OpenAI-compatible chat model and an embedding model; fill in the keys in `.env`, then:
+To run the service you need an OpenAI-compatible chat model and an embedding model. Copy `.env.example` to `.env` (Windows PowerShell: `Copy-Item .env.example .env`), create the `data` folder, fill in the keys, then:
 
 ```bash
 uv run uvicorn app:app --host 127.0.0.1 --port 8001 --workers 1
@@ -105,8 +104,9 @@ uv run python evals/run_evals.py --samples 3 --gate
 | `evals/` | Evaluation runner, metrics, judge, triage; domain data lives under `domains/<name>/evals/` |
 | `executor/`, `channels/`, `api/`, `web/` | Task execution, the Lark channel, the HTTP API and the Web page |
 | `services/`, `db/`, `config/` | Business services, models and repositories, settings |
-| `tests/` | 538 offline tests |
-| `docs/` | Design notes, the evaluation field guide, setup guides |
+| `tests/` | 539 offline tests |
+| `docs/` | The evaluation field guide, the refactoring plan, a source-reading guide, setup guides |
+| `scripts/` | `demo_offline.py` (no API key), `verify_env.py` (checks a real environment) |
 
 ## License
 

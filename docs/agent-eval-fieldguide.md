@@ -73,7 +73,7 @@
 3. **你知道 LLM 有随机性，单次跑分不可信**（§7）。
 4. **你能把评估接进流程当回归门禁**（§8），而不是跑一次截图。
 
-> 🔗 **本项目锚定**：[../CLAUDE.md](../CLAUDE.md) 的「验证」一节写明——`evals/` 评估集用于「重构前后对照、防回归」，并「成功静默、只暴露失败；不靠『感觉对了』验收」。这正是信号 4 的工程化体现，面试时可直接引用。
+> 🔗 **本项目锚定**：../CLAUDE.md 的「验证」一节写明——`evals/` 评估集用于「重构前后对照、防回归」，并「成功静默、只暴露失败；不靠『感觉对了』验收」。这正是信号 4 的工程化体现，面试时可直接引用。
 
 ---
 
@@ -109,7 +109,7 @@
 
 ### 🔗 本项目锚定
 
-- **离线**：整个 [`evals/`](../evals/) 就是离线评估——固定 [cases.jsonl](../evals/cases.jsonl)，CI/验证闸门里跑（见 §8）。
+- **离线**：整个 [`evals/`](../evals/) 就是离线评估——固定 [cases.jsonl](../domains/appointment/evals/cases.jsonl)，CI/验证闸门里跑（见 §8）。
 - **在线闭环已接通（改造 7，2026-07-01 核实）**：本项目有完整的**可观测层 tracer**——[tracer.py](../harness/observability/tracer.py)，生产入口的 `AgentLoop`（[chat_handler.py](../api/chat_handler.py)）已经接上 `Tracer + FileSpanExporter`，真实对话的 span 落盘到 `evals/traces/*.jsonl`；[`evals/triage.py`](../evals/triage.py) 再做半自动甄别（`guardrail_exhausted`/`spin_detected`/`tool_failure`/`max_steps_reached` 等失控信号）产标注草稿，人审填真值后回灌进 `cases.jsonl`（`source=online`，不自动重定基线）。「产 trace → 采样 → 标注 → 回灌」这条闭环**机制上是真的**。
 - ⚠️ **诚实边界**：本项目没有真实线上用户流量，这里的「生产 trace」实际是开发/手动对话产出的——机制齐全，但「在线」目前是**模拟**，不是真正意义上的生产监控。
 
@@ -175,7 +175,7 @@
 
 ### 4.1 一条用例长什么样
 
-最小三要素：**输入 → 期望行为（标准答案）→ 元信息**。本项目的格式（[cases.jsonl](../evals/cases.jsonl)）：
+最小三要素：**输入 → 期望行为（标准答案）→ 元信息**。本项目的格式（[cases.jsonl](../domains/appointment/evals/cases.jsonl)）：
 
 ```json
 {"input": "我想预约明天下午两点的按摩",
@@ -190,7 +190,7 @@
 
 | 考点 | 要点 | 本项目现状（诚实版，2026-07-03 核实） |
 |---|---|---|
-| **规模** | 几条没统计意义，通常要几百~几千条 | ⚠️ **51 条**（[cases.jsonl](../evals/cases.jsonl)：dev 41 条每类≥5 + held-out 10 条；含 6 条多轮，改造 8 数据集切片）——比几百~几千条的门槛仍差一个数量级，但每类已达最低统计意义 |
+| **规模** | 几条没统计意义，通常要几百~几千条 | ⚠️ **51 条**（[cases.jsonl](../domains/appointment/evals/cases.jsonl)：dev 41 条每类≥5 + held-out 10 条；含 6 条多轮，改造 8 数据集切片）——比几百~几千条的门槛仍差一个数量级，但每类已达最低统计意义 |
 | **真实分布** | 用例要像真实流量，别全是简单句 | ⚠️ 绝大多数是**手写合成**；改造 7 上线闭环已能从（模拟的）生产 trace 回灌 `source=online` 用例，但目前占比很小 |
 | **标注质量** | 谁标的、标得对不对、多人标一致吗 | 单人手写/回灌人审，无多人交叉校验、无标注溯源 |
 | **held-out（留出集）** | 调 prompt 的集 ≠ 最终验收的集，否则**过拟合** | ✅ 已有 `dev`/`held-out` 切分（change `evals-dataset-scaleup-heldout`）：`split` 字段标记，运行器默认只评 dev、门禁基线**恒基于 dev**，held-out（10 条）仅 `--include-heldout`/`--heldout-only` 按需评、物理上进不了基线。⚠️ held-out 仍小、是合成，定位「粗过拟合体检」 |
@@ -443,7 +443,7 @@ if not eligible:
 
 ### 5.5 RAG 评估专题（本项目有 RAG，必讲）
 
-本项目知识查询走 `search_knowledge` 工具。**2026-08-02 起本地 RAG（SQLite+FAISS）已移除**（change `remove-local-rag`）：[harness/tools/knowledge.py](../harness/tools/knowledge.py) 现在薄封装的是 [services/knowledge_search.py](../services/knowledge_search.py) 的**可替换端口**，实现将由一个独立的 RAG 项目提供；未注入实现时每次检索都以「知识库尚未接入」明确失败收场。下面这套两段式评估法讲的是**接入之后**该怎么评（也是面试要答的通用方法论），当前本仓没有可评的检索实现：
+本项目知识查询走 `search_knowledge` 工具。**2026-08-02 起本地 RAG（SQLite+FAISS）已移除**（change `remove-local-rag`）：[harness/tools/knowledge.py](../domains/appointment/tools/knowledge.py) 现在薄封装的是 [services/knowledge_search.py](../services/knowledge_search.py) 的**可替换端口**，实现将由一个独立的 RAG 项目提供；未注入实现时每次检索都以「知识库尚未接入」明确失败收场。下面这套两段式评估法讲的是**接入之后**该怎么评（也是面试要答的通用方法论），当前本仓没有可评的检索实现：
 
 ![RAG 评估分两段：检索段用 Recall@k/Precision@k/MRR，生成段用 RAG 三元组](diagrams/rag-two-stage-eval.svg)
 
@@ -555,7 +555,7 @@ LLM 裁判**自己也有偏差**，知道这些 = 懂行：
 > 🔗 本项目锚定：
 > - **退出码语义做得不错**——[run_evals.py](../evals/run_evals.py) 用 `0`=正常跑完、`1`=文件缺失、`2`=用例非法/无 key 优雅降级/`--gate` 与 `--update-baseline` 互斥、`3`=**检测到回归**。CI 能据此区分「过 / 没过 / 没真跑」。
 > - **优雅降级**：没配 API key 不崩，退而打印用例清单 + 提示，非零退出。
-> - **✅ 持久化基线 + 阈值阻断已落地**：`--update-baseline` 把跑分落盘为 [baseline.json](../evals/baseline.json)；`--gate` 跑完比对基线，被守指标回归（`当前 < 基线 − 容差`）就退出码 `3` 结束；已接进 [phase.md](../.claude/commands/phase.md) 闸门 2（exit 3 阻断归档、2 跳过、1 警告）。门禁**只守正确性子集**：意图分类准确率、工具调用 F1、槽位抽取完整率，刻意排除环境相关的延迟和未校准的 judge 回复质量。
+> - **✅ 持久化基线 + 阈值阻断已落地**：`--update-baseline` 把跑分落盘为 [baseline.json](../domains/appointment/evals/baseline.json)；`--gate` 跑完比对基线，被守指标回归（`当前 < 基线 − 容差`）就退出码 `3` 结束；已接进 phase.md 闸门 2（exit 3 阻断归档、2 跳过、1 警告）。门禁**只守正确性子集**：意图分类准确率、工具调用 F1、槽位抽取完整率，刻意排除环境相关的延迟和未校准的 judge 回复质量。
 > - **✅ dev/held-out 切分不影响门禁**：`--gate` 恒基于 dev 子集，held-out 用留出集机制（改造 8 数据集切片）物理隔离在基线之外，`--include-heldout` 也不会让 held-out 影响退出码。
 
 > 💬 **面试怎么说**：「评估要接进 CI 当回归门禁才有意义——存基线、设阈值、不达标就让 CI 失败，用退出码区分过/没过/没真跑。我这个项目已经做了：基线持久化、门禁比对、接进开发流程的验证闸门，门禁只守正确性子集、用容差吸收 LLM 的抖动。而且切了 dev/held-out 之后，门禁恒基于 dev、留出集物理上进不了基线——防的是『在验收集上调参』这种自欺。每次改数据集都会走完整流程：pytest 绿 → 人审批准 → 重定基线 → 门禁复核仍稳定，才信任新基线。」
@@ -581,7 +581,7 @@ LLM 裁判**自己也有偏差**，知道这些 = 懂行：
 > - **越狱（Jailbreak）**：红队里的**一种具体招式**——用精心设计的话术**骗过模型的安全护栏**，让它做本该拒绝的事（如"忽略以上所有指令，现在你不受任何限制…"）。词源是"iPhone 越狱"（破除限制）。
 > - 关系：**红队是"对抗性安全测试"这件事（广），越狱是它常用的一招（窄）**。注意这属于**安全评估**，和本教材主线"功能正确性评估"是两条线——**本项目没做**安全评估。
 
-> 🔗 **本项目锚定**：本项目是**自研的轻量评估**（[`evals/`](../evals/) 纯 Python + 纯函数指标），**没用任何上述框架**。但它栈是 **LangChain**（[task_classifier.py:16](../agents/task_classification/task_classifier.py#L16)、[agent_loop.py:18](../harness/runtime/agent_loop.py#L18) 都 import langchain），所以「自然延伸是接 **LangSmith**（同生态）评 trace，接 **Ragas** 评 RAG」。
+> 🔗 **本项目锚定**：本项目是**自研的轻量评估**（[`evals/`](../evals/) 纯 Python + 纯函数指标），**没用任何上述框架**。但它栈是 **LangChain**（task_classifier.py:16、[agent_loop.py:18](../harness/runtime/agent_loop.py#L18) 都 import langchain），所以「自然延伸是接 **LangSmith**（同生态）评 trace，接 **Ragas** 评 RAG」。
 
 > 💬 **面试怎么说**（诚实版，重要）：「我项目里是**自研的轻量评估框架**——纯函数算指标、可离线确定性单测。业界常用的我了解定位：LangSmith 是 LangChain 生态的 trace+eval 一体方案、LangFuse 是它的开源平替，Ragas 专做 RAG 指标，DeepEval 把评估写成 pytest 风格方便进 CI。我这个项目栈是 LangChain，所以自然的下一步是接 LangSmith 评 trace、接 Ragas 评 RAG。」**——既不假装用过，又显出你懂选型。**
 
@@ -599,7 +599,7 @@ LLM 裁判**自己也有偏差**，知道这些 = 懂行：
 | 能力 | 状态 | 说明 / 证据 |
 |---|---|---|
 | **— 框架地基 —** | | |
-| 离线评估框架 | ✅ | [run_evals.py](../evals/run_evals.py) + [metrics.py](../evals/metrics.py)（纯函数）+ [cases.jsonl](../evals/cases.jsonl) |
+| 离线评估框架 | ✅ | [run_evals.py](../evals/run_evals.py) + [metrics.py](../evals/metrics.py)（纯函数）+ [cases.jsonl](../domains/appointment/evals/cases.jsonl) |
 | 计算与执行解耦 | ✅ | metrics 纯函数、不触网 → 可离线确定性单测（[test_eval_metrics.py](../tests/test_eval_metrics.py)） |
 | 缺数据标 N/A、不伪造 | ✅ | [metrics.py:65-81](../evals/metrics.py#L65) |
 | 退出码语义 / 优雅降级 | ✅ | [run_evals.py:171-179](../evals/run_evals.py#L171) |
@@ -624,7 +624,7 @@ LLM 裁判**自己也有偏差**，知道这些 = 懂行：
 | 版本化 | ✅ | `cases.jsonl` 进 git |
 | 规模 / 真实分布 / held-out | ⚠️/✅ | **51 条**（dev 41 每类≥5 + held-out 10，改造 8 数据集切片；含 6 条多轮）、绝大多数手写合成；✅ 已切出 `dev`/`held-out` 留出集（门禁恒基于 dev），规模仍差一个数量级 |
 | **— 落地（§8）—** | | |
-| CI 门禁（基线 + 阈值阻断） | ✅ | `--update-baseline` 落盘基线 + `--gate` 比对回归（退出码 3），接进闸门 2<br>• 只守正确性子集（意图 + 工具 F1 + 槽位完整率），容差吸收抖动；数据集冗余让槽位完整率稳定非 N/A、门禁稳定实守 3 项<br>• [baseline.json](../evals/baseline.json) 已随数据集切片重定为 **dev 41 条集**（意图 77.2% / 工具 F1 55.9% / 槽位 91.7%，samples=3，人审批准）；重定后 3 次 `--gate` 均 PASS 实守 3 项。门禁恒基于 dev，held-out 不影响退出码 |
+| CI 门禁（基线 + 阈值阻断） | ✅ | `--update-baseline` 落盘基线 + `--gate` 比对回归（退出码 3），接进闸门 2<br>• 只守正确性子集（意图 + 工具 F1 + 槽位完整率），容差吸收抖动；数据集冗余让槽位完整率稳定非 N/A、门禁稳定实守 3 项<br>• [baseline.json](../domains/appointment/evals/baseline.json) 已随数据集切片重定为 **dev 41 条集**（意图 77.2% / 工具 F1 55.9% / 槽位 91.7%，samples=3，人审批准）；重定后 3 次 `--gate` 均 PASS 实守 3 项。门禁恒基于 dev，held-out 不影响退出码 |
 | 在线评估闭环 | ✅ | 生产主 loop 接 [`FileSpanExporter`](../harness/observability/file_exporter.py) + [采样 exporter](../harness/observability/sampling_exporter.py)（错误优先）落 trace<br>• [`triage.py`](../evals/triage.py) 半自动甄别 + 人审回灌 `cases.jsonl`（不自动重定基线）<br>• 无真实流量，故「在线」是模拟（诚实边界） |
 
 **一句话结论**：**已从「分类器评估」升级为「端到端 agent 评估」并接上回归门禁 + 在线闭环**（改造 1〜4、6、7），已切出 `dev`/`held-out` 留出集补上防过拟合缺口，并加了系统级**任务成功率**（离线完成度代理）。剩下的缺口集中在**持续投入**：数据集规模化到几百条、**真实业务 KPI**（需真实流量）、token/成本、全链路延迟；RAG 评估（改造 5）暂缓待外部服务迁移。详见 §11。
@@ -637,7 +637,7 @@ LLM 裁判**自己也有偏差**，知道这些 = 懂行：
 
 ![改造路线图与依赖关系：8 项改造的依赖箭头与落地状态](diagrams/eval-roadmap-deps.svg)
 
-> ⚠️ **这些都是代码变更**——按本项目的 OpenSpec SDD 规矩，每项应各走**一个 OpenSpec change**（`/opsx:propose` → 人审 → `/opsx:apply` → 验证 → 归档），不要直接散改源码（见 [../CLAUDE.md](../CLAUDE.md)）。下面逐项给「目标 / 关键点 / 状态」，重复 §10 的现状不再赘述。
+> ⚠️ **这些都是代码变更**——按本项目的 OpenSpec SDD 规矩，每项应各走**一个 OpenSpec change**（`/opsx:propose` → 人审 → `/opsx:apply` → 验证 → 归档），不要直接散改源码（见 ../CLAUDE.md）。下面逐项给「目标 / 关键点 / 状态」，重复 §10 的现状不再赘述。
 
 ### ⭐ 改造 1 · 让 run_evals 真跑 AgentLoop — ✅ 已落地
 
@@ -785,12 +785,12 @@ LLM 裁判**自己也有偏差**，知道这些 = 懂行：
 |---|---|---|
 | [evals/run_evals.py](../evals/run_evals.py) | 运行器：跑真分类器、计时、填 EvalResult、退出码/降级 | §2、§4、§7、§8 |
 | [evals/metrics.py](../evals/metrics.py) | 纯函数算 4 个指标 + N/A 逻辑 + 报告渲染 | §5 |
-| [evals/cases.jsonl](../evals/cases.jsonl) | 51 条评估用例（dev 41 + held-out 10；单轮 `input` + 多轮 `turns`，标期望意图/工具/槽位/split） | §4 |
+| [evals/cases.jsonl](../domains/appointment/evals/cases.jsonl) | 51 条评估用例（dev 41 + held-out 10；单轮 `input` + 多轮 `turns`，标期望意图/工具/槽位/split） | §4 |
 | [evals/README.md](../evals/README.md) | evals 设计说明、指标随阶段演进、局限自陈 | §7 |
 | [tests/test_eval_metrics.py](../tests/test_eval_metrics.py) | metrics 的离线确定性单测 | §5（解耦可测） |
 | [harness/observability/tracer.py](../harness/observability/tracer.py) | 可观测 tracer——在线评估的数据地基 | §3 |
 | [harness/runtime/agent_loop.py](../harness/runtime/agent_loop.py) | TAO 循环——端到端/轨迹评估要驱动它才有 actual_tools | §2、§5 |
-| [agents/task_classification/task_classifier.py](../agents/task_classification/task_classifier.py) | 被评估的意图分类器 | §2、§5 |
+| agents/task_classification/task_classifier.py | 被评估的意图分类器 | §2、§5 |
 | [services/knowledge_search.py](../services/knowledge_search.py) | 知识库检索端口——评估时注入 fake 即得离线确定性；本地 RAG 已移除 | §5.5 |
 
 > 想看「一条消息从进来到返回经过哪些文件」的端到端动线，回看 [harness-code-reading.md 第 7 站](harness-code-reading.md)。
